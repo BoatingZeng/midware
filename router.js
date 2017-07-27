@@ -7,11 +7,13 @@ var joiRouter = require('koa-joi-router');
  * 文件相对于根目录dir的路径本身会作为url的前置。prefix作为这个router的整体前置。
  * 注意，joiRouter的path是配置在配置对象的path里的，为了添加每个文件的前缀，
  * 每个文件require之后，会给对应的path添加前缀。
- * 每个文件里导出的是一个数组(必须是数组，为了方便，没有做兼容)，这样一个文件可以定义多个路由。
+ * 每个文件里导出的是一个返回数组的函数(必须是数组，为了方便，没有做兼容)，这样一个文件可以定义多个路由。
+ * 下面的参数没有做容错处理。
  * @param {string} dir - 目录路径，完整的
+ * @param {object} [opts] - 传给上面所说的返回数组的函数，这样可以方便把一些通用的东西从这里传进去
  * @param {string} [prefix] - 放在这个router的匹配url前面
  */
-module.exports = function(dir, prefix){
+module.exports = function(dir, opts, prefix){
     var router = joiRouter();
     var fileInfos = getAllJSFileInfos(dir);
     //处理一下prefix，让它变成/path/to/d的形式，就是开头有/，结尾没有/
@@ -22,7 +24,7 @@ module.exports = function(dir, prefix){
     for(var i=0; i<fileInfos.length; i++){
         var fileName = fileInfos[i].fileName;
         var filePath = fileInfos[i].filePath;
-        var routes = require(filePath);
+        var routes = require(filePath)(opts);
         for(var j=0; j<routes.length; j++){
             //如果配置的path里没有用/开头，补上
             if(routes[j].path.indexOf('/') !== 0) routes[j].path = '/' + routes[j].path;
@@ -32,7 +34,6 @@ module.exports = function(dir, prefix){
             if(prefix) {
                 routes[j].path = prefix + routes[j].path;
             }
-            console.log(routes[j].path);
         }
         router.route(routes);
     }

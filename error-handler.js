@@ -9,11 +9,17 @@ var errorHandler = (logger) => async (ctx, next) => {
     } catch(e) {
         if(logger) logger.error('errorHandler捕获：', e);
         ctx.response.status = e.status || e.statusCode || 500;
+        var defaultMsg;
         switch (parseInt(ctx.response.status)) {
             case 500:
-                ctx.response.body = {msg: '服务器的锅'};
+                defaultMsg = '未知错误(服务器内部错误)';
+                break;
+            default:
+                defaultMsg = '未知错误(服务器内部错误)';
                 break;
         }
+        var msg = e.message || defaultMsg;
+        ctx.response.body = {msg: msg};
     }
 }
 

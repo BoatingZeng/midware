@@ -8,6 +8,7 @@ var notFoundHandler = (logger) => async (ctx, next) => {
     if(parseInt(ctx.response.status) === 404) {
         if(logger) logger.warn('404，找不到请求url：', ctx.request.url);
         ctx.response.body = {msg: '404 not fount'};
+        ctx.response.status = 404;
     };
 }
 
